@@ -4,6 +4,9 @@ var express = require('express');
 
 var cron = require('node-cron');
 
+var iconv = require('iconv-lite');
+
+
 let migrationService = require('./services/migrationService')
 
 var app = express();
@@ -14,14 +17,13 @@ conn.connectToServer( function( err, client ) { // MAIN MONGO START
 
   if (err) console.log(err);
   // start the rest of your app here
-  
 
-  
   // 
  
   cron.schedule('*/10 * * * * *', () => {
     // migrationService.contents(
-    migrationService.default('vocabulary')
+    // migrationService.default('vocabulary')
+    migrationService.lessons()
   });
 
 

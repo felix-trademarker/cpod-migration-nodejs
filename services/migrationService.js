@@ -6,12 +6,22 @@ let rpoUserSettings = require('../repositories/mysql/_user_settings');
 let rpoUserVocabulary = require('../repositories/mysql/_user_vocabulary');
 let rpoUserPreferences = require('../repositories/mysql/_user_preferences');
 
+let rpocontentDialogues = require('../repositories/mysql/_contents_dialog')
+let rpoVocabulary = require('../repositories/mysql/_vocabulary')
+let rpoComments = require('../repositories/mysql/_comments')
+
 let rpoMigrations = require('../repositories/mysql/_migrations');
+
+let rpoLessons = require('../repositories/lessons')
+
 let moment = require('moment');
 
-exports.contents = async function(req, res, next) {
+exports.lessons = async function(req, res, next) {
 
-    let lastMigrated = await rpoMigrations.getLastMigrate('contents')
+
+    // rpoMigrations.removeMigrate('lessons')
+    // console.log("remove lessons");
+    let lastMigrated = await rpoMigrations.getLastMigrate('lessons')
     let page = 1, limit = 10, offset = 0;
 
     if (lastMigrated.length > 0) {
@@ -20,7 +30,7 @@ exports.contents = async function(req, res, next) {
     }
 
     let migrationData = {
-        obj : 'contents',
+        obj : 'lessons',
         page: page,
         limit: limit,
         created_at : moment().format()
@@ -30,18 +40,31 @@ exports.contents = async function(req, res, next) {
 
     let contents = await rpoContents.getSQL(page,limit)
     
+    
+    // delete data._id
+    // console.log(data);
+    
     // push to mongoDB
     await contents.forEach(async items => {
-        let dupl = await rpoContents.findQuery({content_id:items.content_id})
-        console.log("== validating "+items.title+" ==");
-        if(dupl.length <= 0) {
-            // fetch other data
-            // console.log("Fetching content series, rates and comments");
-            await rpoContents.put(items)
-        }
-    })
 
-    console.log("==MIGRATING PAGE "+page+ " OF " +"CONTENTS ==")
+        let data = items
+
+        // fetch dialog and vocabulary
+        let dialogues = await rpocontentDialogues.getByV3Id(items.v3_id)
+        let keyVocabulary = await rpoVocabulary.getByV3Id(items.v3_id,"Key Vocabulary")
+        let supVocabulary = await rpoVocabulary.getByV3Id(items.v3_id,"Supplementary")
+        let comments = await rpoComments.getByV3Id(items.v3_id)
+
+        data.dialogues = dialogues
+        data.keyVocabulary = keyVocabulary
+        data.supVocabulary = supVocabulary
+        data.comments = comments
+
+        rpoLessons.put(data)
+        console.log("put lessons");
+    })
+    console.log("==MIGRATING LESSONS PAGE "+page+ " OF " +"COMBINED CONTENTS AND VOCABULARY ==")
+
  
 }
 

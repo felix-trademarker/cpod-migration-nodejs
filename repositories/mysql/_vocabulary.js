@@ -54,6 +54,19 @@ module.exports = {
                 resolve(result)
             });
         });
+    },
+
+    getByV3Id : async function(v3id, key){
+        return new Promise(function(resolve, reject) {
+            var sql = "SELECT * FROM " + tableName
+            sql += " WHERE v3_id='" + v3id + "'"
+            sql += " AND vocabulary_class='" + key + "'"
+            con.query(sql, function (err, result) {
+                if (err) reject(err);
+
+                resolve(result)
+            });
+        });
     }
     
 }

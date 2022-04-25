@@ -62,6 +62,23 @@ module.exports = {
             });
             
         });
+    },
+
+    removeMigrate : async function(obj){
+        return new Promise(function(resolve, reject) {
+
+            let query = { obj : obj }
+            conn.getDb().collection(_table).deleteMany(query, function(err, result) {
+				if (result) {
+					console.log('ok');
+					resolve(result)
+				} else {
+					console.log('err', err.message);
+					reject(err);
+				}
+			});
+            
+        });
     }
     
 }
